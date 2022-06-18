@@ -1,0 +1,19 @@
+version: '3'
+services:
+  database:
+    image: 'mongo'
+    container_name: 'journal-mongo-db'
+    environment:
+      - MONGO_INITDB_DATABASE=journal-db
+    volumes:
+      - ./journal-database/journal-db-files:/data/db
+    ports:
+      - '27017-27019:27017-27019'
+  api:
+    build: './journal-api'
+    image: 'journalapiv2'
+    container_name: 'journal-api'
+    ports:
+      - "8000:80"
+    depends_on:
+            - database
