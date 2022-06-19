@@ -16,4 +16,12 @@ services:
     ports:
       - "8000:80"
     depends_on:
-            - database
+      - database
+  app:
+    build: './journal-ui'
+    image: 'journalui'
+    container_name: 'journal-ui'
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
