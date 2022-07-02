@@ -2,49 +2,86 @@ import logo from './logo.svg';
 import {ThemeProvider, createTheme} from '@mui/material/styles';
 import Button from '@mui/material/Button';  
 import Stack from '@mui/material/Stack';
+//import Item from '@mui/material/ListItem';
 import Grid from '@mui/material/Grid';
-import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
+import * as React from "react";
+import { useEffect } from 'react';
+import Entries from './Entries'
+
+function Text(props){
+  const [text, setText] = React.useState();
+
+  return <TextField value={props.text} onChange={ (e) => {} } 
+          style={{width: '100%', height: '15px' }} multiline={true} 
+          rows={1} id="txtLog" label="Add text here !" variant="outlined" />                            
+
+}
 
 function App() {
+  const [stateData, setStateData] = React.useState();
+  
+  useEffect(() => {
+    listJournal();
+  }, []);
+
   const darkModeTheme = createTheme({
     palette: {
       mode: 'light',
     },
   });
 
-  const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-    ...theme.typography.body2,
-    padding: theme.spacing(1),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-    //verticalAlign: 'bottom',
-    border: 'solid 1px black'
-  }));  
+  const addJournal = (e) => {
+      var je = {  
+                "Entry": stateData.text,
+                "TimeStamp" : new Date().toDateString(),
+                "Tags" : ["general"]                
+      };
 
-  const loadData = () => {
-    fetch("https://localhost:5001/weatherforecast")
+      fetch('https://localhost:44325/api/journal', {
+        method: 'POST',
+        //dataType: "json",
+        //mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8" 
+      },
+        body: JSON.stringify(je)
+      })
+      //.then(res => res.json())
+      .then(
+        (result) => {
+          listJournal();
+          //setEntries(result);
+          //setValue('');
+        },
+
+        (error) => {
+
+          //setValue('');
+        }
+      )              
+  };
+
+  const listJournal = () => {
+    fetch("https://localhost:44325/api/journal")
       .then(res => res.json())
       .then(
         (result) => {
-          // this.setState({
-          //   isLoaded: true,
-          //   items: result.items
-          // });
+          //setStateData ({data:result});
+          setStateData ({info: result, text : ''});
         },
-        // Note: it's important to handle errors here
-        // instead of a catch() block so that we don't swallow
-        // exceptions from actual bugs in components.
         (error) => {
-          // this.setState({
-          //   isLoaded: true,
-          //   error
-          // });
+          console.log(error);
         }
       )      
+  };
+
+  const fnTextValue = () => {  
+    if(stateData !== undefined && stateData.text !== undefined)
+      return stateData.text;
+    
+      return '';
   };
 
   return (
@@ -58,22 +95,24 @@ function App() {
           </p>
         </header>
 
-        <Box sx={{ width: '100%' }}>
+        <Box padding={'1%'} >
+          <form>
           <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
             <Grid item xs={12}>
               <Stack spacing={2}>
-                <Item>Item 1</Item>
-                <Item>Item 2</Item>
-                <Item>Item 3</Item>
+                <Entries data={stateData} />                
               </Stack>
             </Grid>
             <Grid item xs={11}>
-              <TextField style={{width: '100%', height: '15px' }} multiline={true} rows={1} id="txtLog" label="Add text here !" variant="outlined" />                            
+                  <TextField value={ fnTextValue() } onChange={ (e) => { setStateData(prevState => ({ ...prevState, text : e.target.value  })) } } 
+                      style={{width: '100%', height: '15px' }} multiline={true} 
+                      rows={1} id="txtLog" label="Add text here !" variant="outlined" /> 
             </Grid>
             <Grid item xs={1}>                            
-              <Button onClick={loadData} style={{height: '55px' }} variant="contained">Log</Button>              
+              <Button onClick={ (e) => addJournal(e)}  style={{height: '55px' }} variant="contained">Log</Button>              
             </Grid>
           </Grid>
+          </form>
         </Box>        
       </div>
       </ThemeProvider>

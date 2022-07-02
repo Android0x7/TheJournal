@@ -9,11 +9,12 @@ using JournalAPI.Common;
 
 namespace JournalAPI.Services;
 
-public class MongoDBService {
+public class MongoDBService
+{
 
     private IMongoCollection<JournalEntry> JournalEntriesCollection;
     private MongoClient Client { get; set; }
-    public MongoDBService(IOptions<MongoDBSettings> mongoDBSettings) 
+    public MongoDBService(IOptions<MongoDBSettings> mongoDBSettings)
     {
 
         MongoClientSettings settings = MongoClientSettings.FromConnectionString(
@@ -25,16 +26,24 @@ public class MongoDBService {
         this.JournalEntriesCollection = database.GetCollection<JournalEntry>(mongoDBSettings.Value.CollectionName);
     }
 
-    public async Task<List<JournalEntry>> GetJournalsAsync()
+    public async Task<List<JournalEntry>?> GetJournalsAsync()
     {
         this.JournalEntriesCollection = this.Client
                                         .GetDatabase("journal-db")
                                         .GetCollection<JournalEntry>("journalEntries");
 
         var results = from journal in JournalEntriesCollection.AsQueryable()
-                        //where journal.TimeStamp.AsDateTime.Day == System.DateTime.Today.Day
-                    select journal;
-        
-        return await results.ToListAsync<JournalEntry>();
+                          //where journal.TimeStamp.AsDateTime.Day == System.DateTime.Today.Day
+                      select journal;
+
+        if (await results.AnyAsync())
+            return await results.ToListAsync<JournalEntry>();
+        else
+            return null;
+    }
+
+    public async Task AddJournalsEntryAsync(JournalEntry je)
+    {
+        await this.JournalEntriesCollection.InsertOneAsync(je);
     }
 }

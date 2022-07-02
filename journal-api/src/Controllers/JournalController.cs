@@ -6,12 +6,13 @@ using JournalAPI.Services;
 using JournalAPI.Models;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
-namespace JournalAPI.Controllers; 
+namespace JournalAPI.Controllers;
 
-[Controller]
+[ApiController]
 [Route("api/[controller]")]
-public class JournalController: Controller {
+public class JournalController : ControllerBase {
     
     private readonly MongoDBService _mongoDBService;
     public JournalController(MongoDBService mongoDBService) 
@@ -25,8 +26,19 @@ public class JournalController: Controller {
         return await this._mongoDBService.GetJournalsAsync();
     }
 
-    // [HttpPost]
-    // public async Task<IActionResult> Post([FromBody] Playlist playlist) {}
+    [HttpPost()]    
+    public async Task<ActionResult<JournalEntry>> Post(JournalEntry jeModel)
+    {
+        //var jsonString = model;//.ToString();
+        //JournalEntry je = JsonConvert.DeserializeObject<JournalEntry>(jsonString);
+
+
+        await this._mongoDBService.AddJournalsEntryAsync(jeModel);
+        return CreatedAtAction(nameof(Post), new { id = jeModel.Id }, jeModel);
+
+        //return new JournalEntry();
+    }
+
 
     // [HttpPut("{id}")]
     // public async Task<IActionResult> AddToPlaylist(string id, [FromBody] string movieId) {}

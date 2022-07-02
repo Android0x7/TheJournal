@@ -44,11 +44,11 @@ namespace JournalAPI
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseCors("AllowAllDomains");
-            
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            
+            app.UseCors("AllowAllDomains");
 
             app.UseAuthorization();
 
